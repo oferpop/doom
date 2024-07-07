@@ -60,13 +60,21 @@ class Loan(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'cust_id': self.cust_id,
             'book_id': self.book_id,
-            'loan_date': self.loan_date,
-            'return_date': self.return_date,
-            'customer': self.customer.to_dict() if self.customer else None,
-            'book': self.book.to_dict() if self.book else None
+            'loan_date': self.loan_date.strftime('%Y-%m-%d'),
+            'return_date': self.return_date.strftime('%Y-%m-%d'),
+            'book': {
+                'id': self.book.id,
+                'name': self.book.name
+            } if self.book else None,
+            'customer': {
+                'id': self.customer.id,
+                'name': self.customer.name,
+                'mail': self.customer.mail
+            } if self.customer else None
         }
-
+        
 # Book model
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -367,6 +375,28 @@ def get_loans_by_email(email):
             'customer_email': loan_dict['customer']['mail'],
             'book_name': loan_dict['book']['name'],
             'book_id': loan_dict['book']['id'],
+            'loan_date': loan_dict['loan_date'],
+            'return_date': loan_dict['return_date']
+        }
+        formatted_loans.append(formatted_loan)
+    return jsonify(formatted_loans)
+
+@app.route('/my_loans', methods=['GET'])
+@jwt_required()
+def get_my_loans():
+    current_user = get_jwt_identity()
+    customer = Customer.query.filter_by(mail=current_user['mail']).first()
+
+    if not customer:
+        return jsonify({'error': 'Customer not found'}), 404
+
+    loans = Loan.query.filter_by(cust_id=customer.id).all()
+    formatted_loans = []
+    for loan in loans:
+        loan_dict = loan.to_dict()
+        formatted_loan = {
+            'book_name': loan_dict['book']['name'] if loan_dict['book'] else 'Unknown',
+            'book_id': loan_dict['book']['id'] if loan_dict['book'] else None,
             'loan_date': loan_dict['loan_date'],
             'return_date': loan_dict['return_date']
         }

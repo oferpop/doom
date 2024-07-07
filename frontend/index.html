@@ -65,13 +65,16 @@
                     <a class="nav-link" href="loans.html">Loans</a>
                 </li>
             </ul>
-            <!-- Add Login and Register links to navbar -->
+            <!-- Add Login, Register, and My Loans links to navbar -->
             <ul class="navbar-nav ml-auto" id="user-info">
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="login-link">Login</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="register-link">Register</a>
+                </li>
+                <li class="nav-item" id="my-loans-nav-item" style="display: none;">
+                    <a class="nav-link" href="my_loans.html" id="my-loans-link">My Loans</a>
                 </li>
             </ul>
         </div>
@@ -241,6 +244,9 @@
                         <span class="nav-link">Welcome, ${userName}</span>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="my_loans.html" id="my-loans-link">My Loans</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#" id="logout-link">Logout</a>
                     </li>
                 `;
@@ -276,7 +282,7 @@
                                     <p class="card-text">Author: ${book.author}</p>
                                     <p class="card-text">Year: ${book.year_published}</p>
                                     <p class="card-text">Type: ${book.type}</p>
-                                    <button class="btn btn-primary" onclick="rentBook(${book.id})">Rent Book</button>
+                                    ${book.on_loan ? `<p class="card-text text-danger">Book is currently on loan. Return date: ${book.return_date}</p>` : `<button class="btn btn-primary" onclick="rentBook(${book.id})">Rent Book</button>`}
                                 </div>
                             </div>
                         `;

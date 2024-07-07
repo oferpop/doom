@@ -3,34 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Library - Login</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-container { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: 300px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .login-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .btn {
+            width: 100%;
+        }
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>Login</h2>
+        <h1>Login</h1>
         <form id="login-form">
             <div class="form-group">
-                <label for="mail">Email:</label>
-                <input type="email" id="mail" name="mail" required>
+                <label for="mail">Email</label>
+                <input type="email" id="mail" class="form-control" required>
             </div>
             <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="btn btn-primary">Login</button>
+            <p id="error-message" class="error-message">Invalid email or password</p>
         </form>
-        <p id="message"></p>
     </div>
 
     <script>
@@ -44,14 +67,16 @@
                 password: password
             })
             .then(function(response) {
-                document.getElementById('message').innerText = 'Login successful!';
-                console.log(response.data);
-                // Redirect or perform other actions based on the response
-                window.location.href = response.data.redirect_url; // Redirect based on the response
+                if (response.data.access_token) {
+                    localStorage.setItem('access_token', response.data.access_token);
+                    alert('Login successful!');
+                    window.location.href = 'index.html'; // Redirect to homepage or dashboard
+                } else {
+                    document.getElementById('error-message').style.display = 'block';
+                }
             })
             .catch(function(error) {
-                document.getElementById('message').innerText = 'Login failed. Please try again.';
-                console.error('There was an error!', error);
+                document.getElementById('error-message').style.display = 'block';
             });
         });
     </script>

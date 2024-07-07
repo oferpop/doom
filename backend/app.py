@@ -102,32 +102,58 @@ def admin_required(fn):
 def welcome():
     return jsonify({'message': 'Welcome to the Library'})
 
+# # Register route
+# @app.route('/register', methods=['POST'])
+# def register():
+#     data = request.get_json()
+#     if not data or not data.get('mail') or not data.get('password'):
+#         return jsonify({'error': 'Invalid input'}), 400
+
+#     role = data.get('role', 'user')
+#     if role == 'admin':
+#         if not request.headers.get('Authorization'):
+#             return jsonify({'error': 'Admin access required to register admin users'}), 403
+
+#         # Decode token to verify admin access
+#         current_user = get_jwt_identity()
+#         if not current_user or current_user['role'] != 'admin':
+#             return jsonify({'error': 'Admin access required to register admin users'}), 403
+
+#     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+#     new_customer = Customer(
+#         name=data['mail'],  # Use email as the name
+#         city=data.get('city', ''),
+#         age=data.get('age', 0),
+#         mail=data['mail'],
+#         gender=data.get('gender', ''),
+#         password=hashed_password,
+#         role=role
+#     )
+#     db.session.add(new_customer)
+#     db.session.commit()
+
+#     # Automatically log in the user after registration
+#     access_token = create_access_token(identity={'mail': new_customer.mail, 'role': new_customer.role})
+#     return jsonify({'message': 'User registered successfully', 'access_token': access_token}), 201
+# Register route
 # Register route
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data or not data.get('mail') or not data.get('password'):
+    if not data or not data.get('mail') or not data.get('password') or not data.get('username'):
         return jsonify({'error': 'Invalid input'}), 400
 
-    role = data.get('role', 'user')
-    if role == 'admin':
-        if not request.headers.get('Authorization'):
-            return jsonify({'error': 'Admin access required to register admin users'}), 403
-
-        # Decode token to verify admin access
-        current_user = get_jwt_identity()
-        if not current_user or current_user['role'] != 'admin':
-            return jsonify({'error': 'Admin access required to register admin users'}), 403
+    if Customer.query.filter_by(mail=data['mail']).first():
+        return jsonify({'error': 'Email is already taken'}), 400
 
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
     new_customer = Customer(
-        name=data['mail'],  # Use email as the name
+        name=data['username'],
         city=data.get('city', ''),
         age=data.get('age', 0),
         mail=data['mail'],
         gender=data.get('gender', ''),
-        password=hashed_password,
-        role=role
+        password=hashed_password
     )
     db.session.add(new_customer)
     db.session.commit()
@@ -137,6 +163,22 @@ def register():
     return jsonify({'message': 'User registered successfully', 'access_token': access_token}), 201
 
 # Login route
+# @app.route('/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
+#     if not data or not data.get('mail') or not data.get('password'):
+#         return jsonify({'error': 'Invalid input'}), 400
+
+#     customer = Customer.query.filter_by(mail=data['mail']).first()
+#     if customer and bcrypt.check_password_hash(customer.password, data['password']):
+#         access_token = create_access_token(identity={'mail': customer.mail, 'role': customer.role})
+#         if customer.role == 'admin':
+#             message = 'Welcome my master'
+#         else:
+#             message = f'Welcome {customer.mail}'
+#         return jsonify(message=message, access_token=access_token), 200
+#     else:
+#         return jsonify({'error': 'Invalid email or password'}), 401
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -145,12 +187,15 @@ def login():
 
     customer = Customer.query.filter_by(mail=data['mail']).first()
     if customer and bcrypt.check_password_hash(customer.password, data['password']):
-        access_token = create_access_token(identity={'mail': customer.mail, 'role': customer.role})
+        remember_me = data.get('remember_me', False)
+        expires = timedelta(days=30) if remember_me else timedelta(hours=1)
+        access_token = create_access_token(identity={'mail': customer.mail, 'role': customer.role}, expires_delta=expires)
+        user_name = customer.mail
         if customer.role == 'admin':
             message = 'Welcome my master'
         else:
             message = f'Welcome {customer.mail}'
-        return jsonify(message=message, access_token=access_token), 200
+        return jsonify(message=message, access_token=access_token, user_name=user_name), 200
     else:
         return jsonify({'error': 'Invalid email or password'}), 401
 

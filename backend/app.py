@@ -373,6 +373,43 @@ def get_loans_by_email(email):
         formatted_loans.append(formatted_loan)
     return jsonify(formatted_loans)
 
+# @app.route('/add_loan', methods=['POST'])
+# @jwt_required()
+# def add_loan():
+#     current_user_identity = get_jwt_identity()
+#     customer = Customer.query.filter_by(mail=current_user_identity['mail']).first()
+
+#     if not customer:
+#         return jsonify({'error': 'Customer not found'}), 404
+
+#     data = request.get_json()
+#     book_id = data['book_id']
+#     ongoing_loan = Loan.query.filter_by(book_id=book_id).filter(Loan.return_date >= datetime.now()).first()
+#     if ongoing_loan:
+#         return jsonify({'error': 'Book is currently on loan'}), 400
+
+#     book = Book.query.get(book_id)
+#     if book.type == 1:
+#         max_loan_days = 10
+#     elif book.type == 2:
+#         max_loan_days = 5
+#     elif book.type == 3:
+#         max_loan_days = 2
+#     else:
+#         return jsonify({'error': 'Invalid book type'}), 400
+
+#     loan_date = datetime.now()
+#     return_date = loan_date + timedelta(days=max_loan_days)
+
+#     new_loan = Loan(
+#         cust_id=customer.id,
+#         book_id=book_id,
+#         loan_date=loan_date,
+#         return_date=return_date
+#     )
+#     db.session.add(new_loan)
+#     db.session.commit()
+#     return jsonify(new_loan.to_dict()), 201
 @app.route('/add_loan', methods=['POST'])
 @jwt_required()
 def add_loan():
@@ -410,6 +447,7 @@ def add_loan():
     db.session.add(new_loan)
     db.session.commit()
     return jsonify(new_loan.to_dict()), 201
+
 
 @app.route('/loans/<int:book_id>/return', methods=['PUT'])
 @jwt_required()
